@@ -1,8 +1,13 @@
 import java.awt.Robot;
 
 //colors
-color black = #000000;
-color white = #FFFFFF;
+color black = #000000; //oak
+color white = #FFFFFF; //empty space 
+color blue = #7092BE;  //bricks
+
+//textures
+PImage stone;
+PImage oak;
 
 //Map
 int gridSize;
@@ -20,7 +25,7 @@ void setup() {
   textureMode(NORMAL);
   wkey = akey = skey = dkey = false;
   eyeX = width/2;
-  eyeY = height/2;
+  eyeY = 9*height/10;
   eyeZ = 0;
   focusX = width/2;
   focusY = height/2;
@@ -38,14 +43,20 @@ void setup() {
   }
   
   //map
-  map = loadImage("floor.jpg");
+  map = loadImage("map.png");
   gridSize = 100;
+  
+  //textures
+  oak = loadImage("oak.jpg");
+  stone = loadImage("stone.jpg");
+  textureMode(NORMAL);  
 }
 
 void draw() {
   background(0);
   camera(eyeX, eyeY, eyeZ, focusX, focusY, focusZ, upX, upY, upZ);
-  drawFloor();
+  drawFloor(-2000, 2000, height, 100);
+  drawFloor(-2000, 2000, height-gridSize*3, 100);
   drawFocalPoint();
   controlCamera();
   drawMap();
@@ -55,13 +66,15 @@ void drawMap() {
   for (int x = 0; x < map.width; x++) {
    for (int y = 0; y < map.height; y++) {
     color c = map.get(x, y);
-    if (c != white) {
-     pushMatrix();
-     fill(c);
-     stroke(100);
-     translate(x*gridSize-2000, height/2, y*gridSize-2000);
-     box(gridSize, height, gridSize);
-     popMatrix();
+    if (c == blue) {
+      texturedCube(x*gridSize-2000, height-gridSize, y*gridSize-2000, stone, gridSize);
+      texturedCube(x*gridSize-2000, height-gridSize*2, y*gridSize-2000, stone, gridSize); 
+      texturedCube(x*gridSize-2000, height-gridSize*3, y*gridSize-2000, stone, gridSize); 
+    }
+    if (c == black) {
+      texturedCube(x*gridSize-2000, height-gridSize, y*gridSize-2000, oak, gridSize);
+      texturedCube(x*gridSize-2000, height-gridSize*2, y*gridSize-2000, oak, gridSize); 
+      texturedCube(x*gridSize-2000, height-gridSize*3, y*gridSize-2000, oak, gridSize); 
     }
    }
   }
@@ -74,11 +87,11 @@ void drawFocalPoint() {
   popMatrix(); //translate ends 
 }
 
-void drawFloor() {
+void drawFloor(int a, int y, int z, int rx) {
   stroke(255);
-  for (int x = -2000; x <= 2000; x = x + 100) {
-    line(x, height, -2000, x, height, 2000);
-    line(-2000, height, x, 2000, height, x);
+  for (int x = -2000; x <= 2000; x = x + rx) {
+    line(x, z, a, x, z, y);
+    line(a, z, x, y, z, x);
   }
 }
 
