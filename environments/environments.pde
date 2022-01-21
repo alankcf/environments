@@ -1,4 +1,9 @@
+//Alan Fung
+//January 2022
+
 import java.awt.Robot;
+
+boolean skipFrame;
 
 //colors
 color black = #000000; //oak
@@ -50,13 +55,16 @@ void setup() {
   oak = loadImage("oak.jpg");
   stone = loadImage("stone.jpg");
   textureMode(NORMAL);  
+  
+  skipFrame = false;
 }
 
 void draw() {
   background(0);
+  pointLight(255, 255, 255, eyeX, eyeY, eyeZ); //light from a particular location
   camera(eyeX, eyeY, eyeZ, focusX, focusY, focusZ, upX, upY, upZ);
-  drawFloor(-2000, 2000, height, 100);
-  drawFloor(-2000, 2000, height-gridSize*3, 100);
+  drawFloor(-2000, 2000, height, gridSize); //floor
+  drawFloor(-2000, 2000, height-gridSize*4, gridSize); //ceiling
   drawFocalPoint();
   controlCamera();
   drawMap();
@@ -66,16 +74,16 @@ void drawMap() {
   for (int x = 0; x < map.width; x++) {
    for (int y = 0; y < map.height; y++) {
     color c = map.get(x, y);
-    if (c == blue) {
+    if (c == blue || c == black) {
       texturedCube(x*gridSize-2000, height-gridSize, y*gridSize-2000, stone, gridSize);
       texturedCube(x*gridSize-2000, height-gridSize*2, y*gridSize-2000, stone, gridSize); 
       texturedCube(x*gridSize-2000, height-gridSize*3, y*gridSize-2000, stone, gridSize); 
     }
-    if (c == black) {
-      texturedCube(x*gridSize-2000, height-gridSize, y*gridSize-2000, oak, gridSize);
-      texturedCube(x*gridSize-2000, height-gridSize*2, y*gridSize-2000, oak, gridSize); 
-      texturedCube(x*gridSize-2000, height-gridSize*3, y*gridSize-2000, oak, gridSize); 
-    }
+    //if (c == black) {
+    //  texturedCube(x*gridSize-2000, height-gridSize, y*gridSize-2000, oak, gridSize);
+    //  texturedCube(x*gridSize-2000, height-gridSize*2, y*gridSize-2000, oak, gridSize); 
+    //  texturedCube(x*gridSize-2000, height-gridSize*3, y*gridSize-2000, oak, gridSize); 
+    //}
    }
   }
 }
@@ -87,12 +95,25 @@ void drawFocalPoint() {
   popMatrix(); //translate ends 
 }
 
-void drawFloor(int a, int y, int z, int rx) {
+void drawFloor(int start, int end, int level, int gap) { //int x, int y, int z, int rx) {
   stroke(255);
-  for (int x = -2000; x <= 2000; x = x + rx) {
-    line(x, z, a, x, z, y);
-    line(a, z, x, y, z, x);
+  strokeWeight(1);
+  int x = start;
+  int z = start;
+  while (z < end) {
+   //line(x, level, start, x, level, end);
+   //line(start, level, z, end, level, z);
+   texturedCube(x, level, z, oak, gap);
+   x = x + gap;
+   if (x >= end) {
+     x = start;
+     z = z + gap;
+   }
   }
+  //for (int x = -2000; x <= 2000; x = x + rx) {
+  //  line(x, z, a, x, z, y);
+  //  line(a, z, x, y, z, x);
+  //}
 }
 
 void controlCamera() {
@@ -114,8 +135,10 @@ void controlCamera() {
   }
   
   //mouse controls
-  leftRightHeadAngle = leftRightHeadAngle + (mouseX - pmouseX)*0.01;
-  upDownHeadAngle = upDownHeadAngle + (mouseY - pmouseY)*0.01;
+  if (skipFrame == false) {
+    leftRightHeadAngle = leftRightHeadAngle + (mouseX - pmouseX)*0.01;
+    upDownHeadAngle = upDownHeadAngle + (mouseY - pmouseY)*0.01;
+  }
   
   //limits
   if (upDownHeadAngle > PI/2.5) upDownHeadAngle = PI/2.5;
@@ -125,8 +148,13 @@ void controlCamera() {
   focusZ = eyeZ + sin(leftRightHeadAngle)*300;
   focusY = eyeY + tan(upDownHeadAngle)*300;
   
-  if (mouseX > width-2) rbt.mouseMove(3, mouseY);
-  else if (mouseX < 2) rbt.mouseMove(width-2, mouseY);
+  if (mouseX > width-2) {
+    rbt.mouseMove(3, mouseY);
+    skipFrame = true;
+  } else if (mouseX < 2) {
+    rbt.mouseMove(width-2, mouseY);
+    skipFrame = true; 
+  } else skipFrame = false;
 }
 
 void keyPressed() {
